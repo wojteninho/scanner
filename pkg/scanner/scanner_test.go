@@ -221,24 +221,6 @@ func debug(directory string) {
 
 type FileSlice []FileItem
 
-type FilterFn func(file FileItem) bool
-
-func FilterRegularFilesFn(f FileItem) bool {
-	if f.FileInfo == nil {
-		return false
-	}
-
-	return f.FileInfo.Mode().IsRegular()
-}
-
-func FilterDirectoriesFn(f FileItem) bool {
-	if f.FileInfo == nil {
-		return false
-	}
-
-	return f.FileInfo.Mode().IsDir()
-}
-
 func (fs FileSlice) Filter(filterFn FilterFn) FileSlice {
 	var regularFiles FileSlice
 
