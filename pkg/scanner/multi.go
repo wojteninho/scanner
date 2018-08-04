@@ -12,7 +12,7 @@ func NewMultiScanner(scanners ...Scanner) *MultiScanner {
 	return &MultiScanner{scanners: scanners}
 }
 
-func (ms *MultiScanner) Scan(ctx context.Context, directory string) (FileChan, error) {
+func (ms *MultiScanner) Scan(ctx context.Context) (FileChan, error) {
 	// TODO
 	return nil, nil
 }

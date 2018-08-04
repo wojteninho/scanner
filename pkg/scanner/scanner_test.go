@@ -30,6 +30,7 @@ func TestMustScanner(t *testing.T) {
 	}))
 }
 
+// test helpers
 func NewDirectoryPath(name string) string {
 	return path.Join(os.TempDir(), fmt.Sprintf("%d-%s", time.Now().UnixNano(), name))
 }
@@ -53,6 +54,14 @@ type FileItem struct {
 
 func (fi FileItem) Name() string {
 	return fi.name
+}
+
+func NewFileItems(prefix string, n uint) []FileItemInterface {
+	var items []FileItemInterface
+	for i := uint(0); i < n; i++ {
+		items = append(items, NewFileItem(fmt.Sprintf("%s-%d", prefix, i)))
+	}
+	return items
 }
 
 func NewFileItem(name string) FileItem {
@@ -159,9 +168,12 @@ func createDir(directory string, permission os.FileMode) error {
 }
 
 func createFile(name string, permission os.FileMode) error {
-	if _, err := os.Create(name); err != nil {
+	f, err := os.Create(name)
+	if err != nil {
 		return err
 	}
+
+	defer f.Close()
 
 	return os.Chmod(name, permission)
 }

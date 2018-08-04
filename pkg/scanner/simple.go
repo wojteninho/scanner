@@ -8,6 +8,22 @@ import (
 
 type SimpleScannerOptionFn func(s *SimpleScanner) error
 
+func WithDir(directory string) SimpleScannerOptionFn {
+	return func(s *SimpleScanner) error {
+		info, err := os.Stat(directory)
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			return ErrNotDirectory
+		}
+
+		s.directory = directory
+		return nil
+	}
+}
+
 func WithBulkSize(bulkSize int) SimpleScannerOptionFn {
 	return func(s *SimpleScanner) error {
 		s.bulkSize = bulkSize
@@ -17,7 +33,8 @@ func WithBulkSize(bulkSize int) SimpleScannerOptionFn {
 
 // this guy simply scan single directory
 type SimpleScanner struct {
-	bulkSize int
+	directory string
+	bulkSize  int
 }
 
 func NewSimpleScanner(options ...SimpleScannerOptionFn) (*SimpleScanner, error) {
@@ -31,20 +48,15 @@ func NewSimpleScanner(options ...SimpleScannerOptionFn) (*SimpleScanner, error) 
 		}
 	}
 
+	if s.directory == "" {
+		return nil, ErrDirectoryNotSet
+	}
+
 	return &s, nil
 }
 
-func (s *SimpleScanner) Scan(ctx context.Context, directory string) (FileChan, error) {
-	fi, err := os.Stat(directory)
-	if err != nil {
-		return nil, err
-	}
-
-	if !fi.IsDir() {
-		return nil, ErrNotDirectory
-	}
-
-	d, err := os.Open(directory)
+func (s *SimpleScanner) Scan(ctx context.Context) (FileChan, error) {
+	d, err := os.Open(s.directory)
 	if err != nil {
 		return nil, err
 	}

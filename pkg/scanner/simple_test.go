@@ -23,28 +23,27 @@ func TestNewSimpleScannerOptions(t *testing.T) {
 
 func TestSimpleScannerWhenCannotScan(t *testing.T) {
 	t.Run("When directory does not exist", GomegaTest(func(t *testing.T) {
-		fileChan, err := MustScanner(NewSimpleScanner()).Scan(context.TODO(), "this/directory/does/not/exist")
+		scanner, err := NewSimpleScanner(WithDir("this/directory/does/not/exist"))
 
 		Expect(err).To(HaveOccurred())
-		Expect(fileChan).To(BeNil())
+		Expect(scanner).To(BeNil())
+	}))
+
+	t.Run("When directory is not a dir", GomegaTest(func(t *testing.T) {
+		_, filename, _, _ := runtime.Caller(0)
+		scanner, err := NewSimpleScanner(WithDir(filename))
+
+		Expect(err).To(HaveOccurred())
+		Expect(scanner).To(BeNil())
 	}))
 
 	t.Run("When directory is not readable", GomegaTest(func(t *testing.T) {
 		dir := NewDirectoryPath("not-readable-directory")
 		defer MustNewWorkspace(dir, WithPermission(0000)).Purge()
 
-		fileChan, err := MustScanner(NewSimpleScanner()).Scan(context.TODO(), dir)
+		fileChan, err := MustScanner(NewSimpleScanner(WithDir(dir))).Scan(context.TODO())
 
 		Expect(err).To(HaveOccurred())
-		Expect(fileChan).To(BeNil())
-	}))
-
-	t.Run("When directory is not a dir", GomegaTest(func(t *testing.T) {
-		_, filename, _, _ := runtime.Caller(0)
-		fileChan, err := MustScanner(NewSimpleScanner()).Scan(context.TODO(), filename)
-
-		Expect(err).To(HaveOccurred())
-		Expect(err).To(Equal(ErrNotDirectory))
 		Expect(fileChan).To(BeNil())
 	}))
 }
@@ -54,7 +53,7 @@ func TestSimpleScanner(t *testing.T) {
 		dir := NewDirectoryPath("empty-directory")
 		defer MustNewWorkspace(dir).Purge()
 
-		fileChan, err := MustScanner(NewSimpleScanner()).Scan(context.TODO(), dir)
+		fileChan, err := MustScanner(NewSimpleScanner(WithDir(dir))).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
 		Expect(fileChan).ToNot(BeNil())
@@ -69,7 +68,7 @@ func TestSimpleScanner(t *testing.T) {
 			NewDirItem("level-0-directory-3"),
 		)).Purge()
 
-		fileChan, err := MustScanner(NewSimpleScanner()).Scan(context.TODO(), dir)
+		fileChan, err := MustScanner(NewSimpleScanner(WithDir(dir))).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
 		Expect(fileChan).ToNot(BeNil())
@@ -87,7 +86,7 @@ func TestSimpleScanner(t *testing.T) {
 			NewFileItem("level-0-file-3.jpg"),
 		)).Purge()
 
-		fileChan, err := MustScanner(NewSimpleScanner()).Scan(context.TODO(), dir)
+		fileChan, err := MustScanner(NewSimpleScanner(WithDir(dir))).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
 		Expect(fileChan).ToNot(BeNil())
@@ -108,7 +107,7 @@ func TestSimpleScanner(t *testing.T) {
 			NewFileItem("level-0-file-3.jpg"),
 		)).Purge()
 
-		fileChan, err := MustScanner(NewSimpleScanner()).Scan(context.TODO(), dir)
+		fileChan, err := MustScanner(NewSimpleScanner(WithDir(dir))).Scan(context.TODO())
 		Expect(err).ToNot(HaveOccurred())
 		Expect(fileChan).ToNot(BeNil())
 		Expect(fileChan).To(WithTransform(FileChanToSlice, And(
@@ -140,7 +139,7 @@ func TestSimpleScanner(t *testing.T) {
 			NewFileItem("level-0-file-3.jpg"),
 		)).Purge()
 
-		fileChan, err := MustScanner(NewSimpleScanner()).Scan(context.TODO(), dir)
+		fileChan, err := MustScanner(NewSimpleScanner(WithDir(dir))).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
 		Expect(fileChan).ToNot(BeNil())
