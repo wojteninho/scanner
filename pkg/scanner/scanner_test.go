@@ -30,6 +30,16 @@ func TestMustScanner(t *testing.T) {
 	}))
 }
 
+func TestMustScan(t *testing.T) {
+	t.Run("When error occurred", GomegaTest(func(t *testing.T) {
+		Expect(func() { MustScan(nil, errors.New("dummy error")) }).To(Panic())
+	}))
+
+	t.Run("When error not occurred", GomegaTest(func(t *testing.T) {
+		Expect(func() { MustScan(nil, nil) }).ToNot(Panic())
+	}))
+}
+
 // test helpers
 func NewDirectoryPath(name string) string {
 	return path.Join(os.TempDir(), fmt.Sprintf("%d-%s", time.Now().UnixNano(), name))

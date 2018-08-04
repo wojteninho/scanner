@@ -22,6 +22,14 @@ func TestNewSimpleScannerOptions(t *testing.T) {
 }
 
 func TestSimpleScannerWhenCannotScan(t *testing.T) {
+	t.Run("When directory is not set", GomegaTest(func(t *testing.T) {
+		scanner, err := NewSimpleScanner()
+
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(Equal(ErrDirectoryNotSet))
+		Expect(scanner).To(BeNil())
+	}))
+
 	t.Run("When directory does not exist", GomegaTest(func(t *testing.T) {
 		scanner, err := NewSimpleScanner(WithDir("this/directory/does/not/exist"))
 
