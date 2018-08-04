@@ -95,7 +95,7 @@ type WorkspaceDir struct {
 	files []WorkspaceItem
 }
 
-func NewDirItem(name string, items ...WorkspaceItem) WorkspaceDir {
+func NewWorkspaceDir(name string, items ...WorkspaceItem) WorkspaceDir {
 	return WorkspaceDir{
 		WorkspaceFile{name},
 		items,
