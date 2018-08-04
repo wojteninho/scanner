@@ -1,17 +1,17 @@
 package scanner_test
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
+	"reflect"
+	"runtime"
 	"testing"
 	"time"
-
-	"errors"
-
-	"reflect"
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/format"
@@ -19,6 +19,18 @@ import (
 	"github.com/onsi/gomega/types"
 	. "github.com/wojteninho/scanner/pkg/scanner"
 )
+
+func TestFile(t *testing.T) {
+	t.Run("When calling PathName", GomegaTest(func(t *testing.T) {
+		_, filename, _, _ := runtime.Caller(0)
+		f, err := os.Stat(filename)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(f).ToNot(BeNil())
+
+		file := NewFile(f, filepath.Dir(filename))
+		Expect(file.PathName()).To(Equal(path.Join(filepath.Dir(filename), f.Name())))
+	}))
+}
 
 func TestMustScanner(t *testing.T) {
 	t.Run("When error occurred", GomegaTest(func(t *testing.T) {
@@ -54,43 +66,43 @@ func WithPermission(permission os.FileMode) WorkspaceOptionFn {
 	}
 }
 
-type FileItemInterface interface {
+type WorkspaceItem interface {
 	Name() string
 }
 
-type FileItem struct {
+type WorkspaceFile struct {
 	name string
 }
 
-func (fi FileItem) Name() string {
+func (fi WorkspaceFile) Name() string {
 	return fi.name
 }
 
-func NewFileItems(prefix string, n uint) []FileItemInterface {
-	var items []FileItemInterface
+func NewWorkspaceFiles(prefix string, n uint) []WorkspaceItem {
+	var items []WorkspaceItem
 	for i := uint(0); i < n; i++ {
-		items = append(items, NewFileItem(fmt.Sprintf("%s-%d", prefix, i)))
+		items = append(items, NewWorkspaceFile(fmt.Sprintf("%s-%d", prefix, i)))
 	}
 	return items
 }
 
-func NewFileItem(name string) FileItem {
-	return FileItem{name}
+func NewWorkspaceFile(name string) WorkspaceFile {
+	return WorkspaceFile{name}
 }
 
-type DirItem struct {
-	FileItem
-	files []FileItemInterface
+type WorkspaceDir struct {
+	WorkspaceFile
+	files []WorkspaceItem
 }
 
-func NewDirItem(name string, items ...FileItemInterface) DirItem {
-	return DirItem{
-		FileItem{name},
+func NewDirItem(name string, items ...WorkspaceItem) WorkspaceDir {
+	return WorkspaceDir{
+		WorkspaceFile{name},
 		items,
 	}
 }
 
-func WithItems(items ...FileItemInterface) WorkspaceOptionFn {
+func WithItems(items ...WorkspaceItem) WorkspaceOptionFn {
 	return func(w *Workspace) error {
 		w.items = items
 		return nil
@@ -107,7 +119,7 @@ func WithDebug() WorkspaceOptionFn {
 type Workspace struct {
 	directory  string
 	permission os.FileMode
-	items      []FileItemInterface
+	items      []WorkspaceItem
 	debug      bool
 }
 
@@ -151,13 +163,13 @@ func NewWorkspace(directory string, options ...WorkspaceOptionFn) (*Workspace, e
 	return w, nil
 }
 
-func createItems(directory string, permission os.FileMode, items ...FileItemInterface) error {
+func createItems(directory string, permission os.FileMode, items ...WorkspaceItem) error {
 	if err := createDir(directory, permission); err != nil {
 		return err
 	}
 
 	for _, item := range items {
-		if dirItem, ok := item.(DirItem); ok {
+		if dirItem, ok := item.(WorkspaceDir); ok {
 			if err := createItems(path.Join(directory, dirItem.Name()), permission, dirItem.files...); err != nil {
 				return err
 			}
@@ -207,11 +219,11 @@ func debug(directory string) {
 	}
 }
 
-type FileSlice []File
+type FileSlice []FileItem
 
-type FilterFn func(file File) bool
+type FilterFn func(file FileItem) bool
 
-func FilterRegularFilesFn(f File) bool {
+func FilterRegularFilesFn(f FileItem) bool {
 	if f.FileInfo == nil {
 		return false
 	}
@@ -219,7 +231,7 @@ func FilterRegularFilesFn(f File) bool {
 	return f.FileInfo.Mode().IsRegular()
 }
 
-func FilterDirectoriesFn(f File) bool {
+func FilterDirectoriesFn(f FileItem) bool {
 	if f.FileInfo == nil {
 		return false
 	}
@@ -249,7 +261,7 @@ func (fs FileSlice) FilterDirectories() FileSlice {
 	return fs.Filter(FilterDirectoriesFn)
 }
 
-func FileChanToSlice(fileChan FileChan) FileSlice {
+func FileChanToSlice(fileChan FileItemChan) FileSlice {
 	var files FileSlice
 
 	for file := range fileChan {

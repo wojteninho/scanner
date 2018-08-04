@@ -89,9 +89,9 @@ func TestSimpleScanner(t *testing.T) {
 	t.Run("When directory is not empty, but has flat structure and contains only files", GomegaTest(func(t *testing.T) {
 		dir := NewDirectoryPath("flat-directory-with-files-only")
 		defer MustNewWorkspace(dir, WithItems(
-			NewFileItem("level-0-file-1.jpg"),
-			NewFileItem("level-0-file-2.jpg"),
-			NewFileItem("level-0-file-3.jpg"),
+			NewWorkspaceFile("level-0-file-1.jpg"),
+			NewWorkspaceFile("level-0-file-2.jpg"),
+			NewWorkspaceFile("level-0-file-3.jpg"),
 		)).Purge()
 
 		fileChan, err := MustScanner(NewSimpleScanner(WithDir(dir))).Scan(context.TODO())
@@ -110,9 +110,9 @@ func TestSimpleScanner(t *testing.T) {
 			NewDirItem("level-0-directory-1"),
 			NewDirItem("level-0-directory-2"),
 			NewDirItem("level-0-directory-3"),
-			NewFileItem("level-0-file-1.jpg"),
-			NewFileItem("level-0-file-2.jpg"),
-			NewFileItem("level-0-file-3.jpg"),
+			NewWorkspaceFile("level-0-file-1.jpg"),
+			NewWorkspaceFile("level-0-file-2.jpg"),
+			NewWorkspaceFile("level-0-file-3.jpg"),
 		)).Purge()
 
 		fileChan, err := MustScanner(NewSimpleScanner(WithDir(dir))).Scan(context.TODO())
@@ -133,18 +133,18 @@ func TestSimpleScanner(t *testing.T) {
 
 			// directory with file inside
 			NewDirItem("level-0-directory-2",
-				NewFileItem("level-1-file-2.1.jpg"),
+				NewWorkspaceFile("level-1-file-2.1.jpg"),
 			),
 
 			// directory with directory with file inside
 			NewDirItem("level-0-directory-3",
 				NewDirItem("level-1-directory-3.1",
-					NewFileItem("level-2-file-3.1.1.jpg"),
+					NewWorkspaceFile("level-2-file-3.1.1.jpg"),
 				),
 			),
 
 			// regular file
-			NewFileItem("level-0-file-3.jpg"),
+			NewWorkspaceFile("level-0-file-3.jpg"),
 		)).Purge()
 
 		fileChan, err := MustScanner(NewSimpleScanner(WithDir(dir))).Scan(context.TODO())

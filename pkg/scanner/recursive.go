@@ -5,7 +5,7 @@ import "context"
 type RecursiveScanner struct {
 }
 
-func (cs *RecursiveScanner) Scan(ctx context.Context, directory string) (FileChan, error) {
+func (cs *RecursiveScanner) Scan(ctx context.Context) (FileItemChan, error) {
 	// TODO
 	return nil, nil
 }

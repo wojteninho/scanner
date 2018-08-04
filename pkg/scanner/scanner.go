@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"path"
 )
 
 var (
@@ -11,15 +12,33 @@ var (
 	ErrDirectoryNotSet = errors.New("directory is not set, use WithDir(/path/to/directory) to set it up")
 )
 
+type FileInfo interface {
+	os.FileInfo
+	PathName() string
+}
+
 type File struct {
-	FileInfo os.FileInfo
+	os.FileInfo
+	pathName string
+}
+
+func (f File) PathName() string {
+	return path.Join(f.pathName, f.Name())
+}
+
+func NewFile(info os.FileInfo, pathName string) File {
+	return File{info, pathName}
+}
+
+type FileItem struct {
+	FileInfo FileInfo
 	Err      error
 }
 
-type FileChan chan File
+type FileItemChan chan FileItem
 
 type Scanner interface {
-	Scan(ctx context.Context) (FileChan, error)
+	Scan(ctx context.Context) (FileItemChan, error)
 }
 
 func MustScanner(s Scanner, err error) Scanner {
@@ -30,7 +49,7 @@ func MustScanner(s Scanner, err error) Scanner {
 	return s
 }
 
-func MustScan(filesChan FileChan, err error) FileChan {
+func MustScan(filesChan FileItemChan, err error) FileItemChan {
 	if err != nil {
 		panic(err)
 	}

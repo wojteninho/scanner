@@ -55,13 +55,13 @@ func NewSimpleScanner(options ...SimpleScannerOptionFn) (*SimpleScanner, error) 
 	return &s, nil
 }
 
-func (s *SimpleScanner) Scan(ctx context.Context) (FileChan, error) {
+func (s *SimpleScanner) Scan(ctx context.Context) (FileItemChan, error) {
 	d, err := os.Open(s.directory)
 	if err != nil {
 		return nil, err
 	}
 
-	fileChan := make(FileChan)
+	fileChan := make(FileItemChan)
 
 	go func() {
 		defer d.Close()
@@ -75,11 +75,11 @@ func (s *SimpleScanner) Scan(ctx context.Context) (FileChan, error) {
 					break
 				}
 
-				fileChan <- File{nil, err}
+				fileChan <- FileItem{nil, err}
 			}
 
-			for _, file := range bulk {
-				fileChan <- File{file, nil}
+			for _, info := range bulk {
+				fileChan <- FileItem{NewFile(info, s.directory), nil}
 			}
 		}
 	}()

@@ -17,7 +17,7 @@ func BenchmarkSimpleScannerBulkSize(b *testing.B) {
 			b.Run(fmt.Sprintf("filesNumber-%d/bulkSize-%d", filesNumber, bulkSize), func(b *testing.B) {
 				b.StopTimer()
 				dir := NewDirectoryPath(fmt.Sprintf("directory-with-%d-files", filesNumber))
-				defer MustNewWorkspace(dir, WithItems(NewFileItems("file", filesNumber)...)).Purge()
+				defer MustNewWorkspace(dir, WithItems(NewWorkspaceFiles("file", filesNumber)...)).Purge()
 				scanner := MustScanner(NewSimpleScanner(WithDir(dir), WithBulkSize(bulkSize)))
 				b.StartTimer()
 
@@ -118,7 +118,7 @@ func BenchmarkCompareWithOtherMethodsByScanningFlatDirectory(b *testing.B) {
 			b.Run(fmt.Sprintf("%s/filesNumber-%d", strategy.Name, filesNumber), func(b *testing.B) {
 				b.StopTimer()
 				dir := NewDirectoryPath(fmt.Sprintf("directory-with-%d-files", filesNumber))
-				defer MustNewWorkspace(dir, WithItems(NewFileItems("file", filesNumber)...)).Purge()
+				defer MustNewWorkspace(dir, WithItems(NewWorkspaceFiles("file", filesNumber)...)).Purge()
 				scanFn := strategy.MakeScanFn(dir)
 				b.StartTimer()
 
