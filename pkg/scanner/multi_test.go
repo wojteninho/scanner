@@ -102,8 +102,8 @@ func TestMultiScanner(t *testing.T) {
 		)).Purge()
 
 		fileChan, err := NewMultiScanner(
-			MustScanner(NewSimpleScanner(WithDir(firstDir))),
-			MustScanner(NewSimpleScanner(WithDir(secondDir))),
+			MustScanner(NewBasicScanner(WithDir(firstDir))),
+			MustScanner(NewBasicScanner(WithDir(secondDir))),
 		).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())

@@ -36,7 +36,7 @@ func TestFilterRegularFilesScanner(t *testing.T) {
 			NewWorkspaceFile("level-0-file-3.jpg"),
 		)).Purge()
 
-		innerScanner := MustScanner(NewSimpleScanner(WithDir(dir)))
+		innerScanner := MustScanner(NewBasicScanner(WithDir(dir)))
 		fileChan, err := NewFilterRegularFilesScanner(innerScanner).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
@@ -55,7 +55,7 @@ func TestFilterRegularFilesScanner(t *testing.T) {
 			NewWorkspaceDir("level-0-directory-3"),
 		)).Purge()
 
-		innerScanner := MustScanner(NewSimpleScanner(WithDir(dir)))
+		innerScanner := MustScanner(NewBasicScanner(WithDir(dir)))
 		fileChan, err := NewFilterRegularFilesScanner(innerScanner).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
@@ -77,7 +77,7 @@ func TestFilterRegularFilesScanner(t *testing.T) {
 			NewWorkspaceDir("level-0-directory-3"),
 		)).Purge()
 
-		innerScanner := MustScanner(NewSimpleScanner(WithDir(dir)))
+		innerScanner := MustScanner(NewBasicScanner(WithDir(dir)))
 		fileChan, err := NewFilterRegularFilesScanner(innerScanner).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
@@ -105,7 +105,7 @@ func TestFilterDirectoriesScanner(t *testing.T) {
 			NewWorkspaceFile("level-0-file-3.jpg"),
 		)).Purge()
 
-		innerScanner := MustScanner(NewSimpleScanner(WithDir(dir)))
+		innerScanner := MustScanner(NewBasicScanner(WithDir(dir)))
 		fileChan, err := NewFilterDirectoriesScanner(innerScanner).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
@@ -124,7 +124,7 @@ func TestFilterDirectoriesScanner(t *testing.T) {
 			NewWorkspaceDir("level-0-directory-3"),
 		)).Purge()
 
-		innerScanner := MustScanner(NewSimpleScanner(WithDir(dir)))
+		innerScanner := MustScanner(NewBasicScanner(WithDir(dir)))
 		fileChan, err := NewFilterDirectoriesScanner(innerScanner).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
@@ -146,7 +146,7 @@ func TestFilterDirectoriesScanner(t *testing.T) {
 			NewWorkspaceDir("level-0-directory-3"),
 		)).Purge()
 
-		innerScanner := MustScanner(NewSimpleScanner(WithDir(dir)))
+		innerScanner := MustScanner(NewBasicScanner(WithDir(dir)))
 		fileChan, err := NewFilterDirectoriesScanner(innerScanner).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())

@@ -6,10 +6,10 @@ import (
 	"os"
 )
 
-type SimpleScannerOptionFn func(s *SimpleScanner) error
+type BasicScannerOptionFn func(s *BasicScanner) error
 
-func WithDir(directory string) SimpleScannerOptionFn {
-	return func(s *SimpleScanner) error {
+func WithDir(directory string) BasicScannerOptionFn {
+	return func(s *BasicScanner) error {
 		info, err := os.Stat(directory)
 		if err != nil {
 			return err
@@ -24,21 +24,20 @@ func WithDir(directory string) SimpleScannerOptionFn {
 	}
 }
 
-func WithBulkSize(bulkSize int) SimpleScannerOptionFn {
-	return func(s *SimpleScanner) error {
+func WithBulkSize(bulkSize int) BasicScannerOptionFn {
+	return func(s *BasicScanner) error {
 		s.bulkSize = bulkSize
 		return nil
 	}
 }
 
-// this guy simply scan single directory
-type SimpleScanner struct {
+type BasicScanner struct {
 	directory string
 	bulkSize  int
 }
 
-func NewSimpleScanner(options ...SimpleScannerOptionFn) (*SimpleScanner, error) {
-	s := SimpleScanner{
+func NewBasicScanner(options ...BasicScannerOptionFn) (Scanner, error) {
+	s := BasicScanner{
 		bulkSize: 20,
 	}
 
@@ -48,20 +47,20 @@ func NewSimpleScanner(options ...SimpleScannerOptionFn) (*SimpleScanner, error) 
 		}
 	}
 
-	if s.directory == "" {
-		return nil, ErrDirectoryNotSet
-	}
-
 	return &s, nil
 }
 
-func (s *SimpleScanner) Scan(ctx context.Context) (FileItemChan, error) {
+func (s *BasicScanner) Scan(ctx context.Context) (FileItemChan, error) {
+	fileChan := make(FileItemChan)
+	if s.directory == "" {
+		defer close(fileChan)
+		return fileChan, nil
+	}
+
 	d, err := os.Open(s.directory)
 	if err != nil {
 		return nil, err
 	}
-
-	fileChan := make(FileItemChan)
 
 	go func() {
 		defer d.Close()

@@ -9,7 +9,7 @@ type MultiScanner struct {
 	scanners []Scanner
 }
 
-func NewMultiScanner(scanners ...Scanner) *MultiScanner {
+func NewMultiScanner(scanners ...Scanner) Scanner {
 	return &MultiScanner{scanners: scanners}
 }
 

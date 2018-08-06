@@ -7,10 +7,7 @@ import (
 	"path"
 )
 
-var (
-	ErrNotDirectory    = errors.New("not directory")
-	ErrDirectoryNotSet = errors.New("directory is not set, use WithDir(/path/to/directory) to set it up")
-)
+var ErrNotDirectory = errors.New("not a directory")
 
 type FileInfo interface {
 	os.FileInfo
