@@ -11,7 +11,7 @@ import (
 )
 
 func TestNewBasicScannerOptions(t *testing.T) {
-	t.Run("When erroring option is passed", GomegaTest(func(t *testing.T) {
+	t.Run("When erroring option is passed", ScannerTest(func(t *testing.T) {
 		s, err := NewBasicScanner(func(_ *BasicScanner) error {
 			return errors.New("dummy error")
 		})
@@ -22,14 +22,14 @@ func TestNewBasicScannerOptions(t *testing.T) {
 }
 
 func TestBasicScannerWhenCannotScan(t *testing.T) {
-	t.Run("When directory does not exist", GomegaTest(func(t *testing.T) {
+	t.Run("When directory does not exist", ScannerTest(func(t *testing.T) {
 		scanner, err := NewBasicScanner(WithDir("this/directory/does/not/exist"))
 
 		Expect(err).To(HaveOccurred())
 		Expect(scanner).To(BeNil())
 	}))
 
-	t.Run("When directory is not a dir", GomegaTest(func(t *testing.T) {
+	t.Run("When directory is not a dir", ScannerTest(func(t *testing.T) {
 		_, filename, _, _ := runtime.Caller(0)
 		scanner, err := NewBasicScanner(WithDir(filename))
 
@@ -37,7 +37,7 @@ func TestBasicScannerWhenCannotScan(t *testing.T) {
 		Expect(scanner).To(BeNil())
 	}))
 
-	t.Run("When directory is not readable", GomegaTest(func(t *testing.T) {
+	t.Run("When directory is not readable", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("not-readable-directory")
 		defer MustNewWorkspace(dir, WithPermission(0000)).Purge()
 
@@ -49,7 +49,7 @@ func TestBasicScannerWhenCannotScan(t *testing.T) {
 }
 
 func TestBasicScanner(t *testing.T) {
-	t.Run("When directory is not set", GomegaTest(func(t *testing.T) {
+	t.Run("When directory is not set", ScannerTest(func(t *testing.T) {
 		fileChan, err := MustScanner(NewBasicScanner()).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
@@ -57,7 +57,7 @@ func TestBasicScanner(t *testing.T) {
 		Expect(fileChan).To(WithTransform(FileChanToSlice, BeEmpty()))
 	}))
 
-	t.Run("When directory is empty", GomegaTest(func(t *testing.T) {
+	t.Run("When directory is empty", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("empty-directory")
 		defer MustNewWorkspace(dir).Purge()
 
@@ -68,7 +68,7 @@ func TestBasicScanner(t *testing.T) {
 		Expect(fileChan).To(WithTransform(FileChanToSlice, BeEmpty()))
 	}))
 
-	t.Run("When directory is not empty, but has flat structure and contains only empty directories", GomegaTest(func(t *testing.T) {
+	t.Run("When directory is not empty, but has flat structure and contains only empty directories", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("flat-directory-with-empty-sub-directories-only")
 		defer MustNewWorkspace(dir, WithItems(
 			NewWorkspaceDir("level-0-directory-1"),
@@ -86,7 +86,7 @@ func TestBasicScanner(t *testing.T) {
 		)))
 	}))
 
-	t.Run("When directory is not empty, but has flat structure and contains only files", GomegaTest(func(t *testing.T) {
+	t.Run("When directory is not empty, but has flat structure and contains only files", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("flat-directory-with-files-only")
 		defer MustNewWorkspace(dir, WithItems(
 			NewWorkspaceFile("level-0-file-1.jpg"),
@@ -104,7 +104,7 @@ func TestBasicScanner(t *testing.T) {
 		)))
 	}))
 
-	t.Run("When directory is not empty, but has flat structure and contains both empty directories and files", GomegaTest(func(t *testing.T) {
+	t.Run("When directory is not empty, but has flat structure and contains both empty directories and files", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("flat-directory-with-files-only")
 		defer MustNewWorkspace(dir, WithItems(
 			NewWorkspaceDir("level-0-directory-1"),
@@ -125,7 +125,7 @@ func TestBasicScanner(t *testing.T) {
 		)))
 	}))
 
-	t.Run("When directory is not empty, but has nested structure and contains but not empty directories and files", GomegaTest(func(t *testing.T) {
+	t.Run("When directory is not empty, but has nested structure and contains but not empty directories and files", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("flat-directory-with-not-empty-sub-directories")
 		defer MustNewWorkspace(dir, WithItems(
 			// empty directory

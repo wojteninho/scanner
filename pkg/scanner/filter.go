@@ -20,6 +20,10 @@ func FilterDirectoriesFn(f FileItem) bool {
 	return f.FileInfo.Mode().IsDir()
 }
 
+func FilterErrorsFn(f FileItem) bool {
+	return f.Err != nil
+}
+
 type FilterScanner struct {
 	scanner  Scanner
 	filterFn FilterFn

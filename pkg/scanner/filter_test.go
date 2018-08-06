@@ -9,26 +9,26 @@ import (
 )
 
 func TestFilterRegularFilesFn(t *testing.T) {
-	t.Run("When is FileItem.FileInfo nil", GomegaTest(func(t *testing.T) {
+	t.Run("When is FileItem.FileInfo nil", ScannerTest(func(t *testing.T) {
 		Expect(FilterRegularFilesFn(FileItem{})).To(BeFalse())
 	}))
 }
 
 func TestFilterDirectoriesFn(t *testing.T) {
-	t.Run("When is FileItem.FileInfo nil", GomegaTest(func(t *testing.T) {
+	t.Run("When is FileItem.FileInfo nil", ScannerTest(func(t *testing.T) {
 		Expect(FilterDirectoriesFn(FileItem{})).To(BeFalse())
 	}))
 }
 
 func TestFilterRegularFilesScanner(t *testing.T) {
-	t.Run("When inner scanner returns an error", GomegaTest(func(t *testing.T) {
+	t.Run("When inner scanner returns an error", ScannerTest(func(t *testing.T) {
 		fileChan, err := NewFilterRegularFilesScanner(&FailingScanner{}).Scan(context.TODO())
 
 		Expect(err).To(HaveOccurred())
 		Expect(fileChan).To(BeNil())
 	}))
 
-	t.Run("When inner scanner return files only", GomegaTest(func(t *testing.T) {
+	t.Run("When inner scanner return files only", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("directory-with-files-only")
 		defer MustNewWorkspace(dir, WithItems(
 			NewWorkspaceFile("level-0-file-1.jpg"),
@@ -47,7 +47,7 @@ func TestFilterRegularFilesScanner(t *testing.T) {
 		)))
 	}))
 
-	t.Run("When inner scanner return directories only", GomegaTest(func(t *testing.T) {
+	t.Run("When inner scanner return directories only", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("directory-with-directories-only")
 		defer MustNewWorkspace(dir, WithItems(
 			NewWorkspaceDir("level-0-directory-1"),
@@ -66,7 +66,7 @@ func TestFilterRegularFilesScanner(t *testing.T) {
 		)))
 	}))
 
-	t.Run("When inner scanner return both files and directories", GomegaTest(func(t *testing.T) {
+	t.Run("When inner scanner return both files and directories", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("directory-with-directories-only")
 		defer MustNewWorkspace(dir, WithItems(
 			NewWorkspaceFile("level-0-file-1.jpg"),
@@ -90,14 +90,14 @@ func TestFilterRegularFilesScanner(t *testing.T) {
 }
 
 func TestFilterDirectoriesScanner(t *testing.T) {
-	t.Run("When inner scanner returns an error", GomegaTest(func(t *testing.T) {
+	t.Run("When inner scanner returns an error", ScannerTest(func(t *testing.T) {
 		fileChan, err := NewFilterDirectoriesScanner(&FailingScanner{}).Scan(context.TODO())
 
 		Expect(err).To(HaveOccurred())
 		Expect(fileChan).To(BeNil())
 	}))
 
-	t.Run("When inner scanner return files only", GomegaTest(func(t *testing.T) {
+	t.Run("When inner scanner return files only", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("directory-with-files-only")
 		defer MustNewWorkspace(dir, WithItems(
 			NewWorkspaceFile("level-0-file-1.jpg"),
@@ -116,7 +116,7 @@ func TestFilterDirectoriesScanner(t *testing.T) {
 		)))
 	}))
 
-	t.Run("When inner scanner return directories only", GomegaTest(func(t *testing.T) {
+	t.Run("When inner scanner return directories only", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("directory-with-directories-only")
 		defer MustNewWorkspace(dir, WithItems(
 			NewWorkspaceDir("level-0-directory-1"),
@@ -135,7 +135,7 @@ func TestFilterDirectoriesScanner(t *testing.T) {
 		)))
 	}))
 
-	t.Run("When inner scanner return both files and directories", GomegaTest(func(t *testing.T) {
+	t.Run("When inner scanner return both files and directories", ScannerTest(func(t *testing.T) {
 		dir := NewDirectoryPath("directory-with-directories-only")
 		defer MustNewWorkspace(dir, WithItems(
 			NewWorkspaceFile("level-0-file-1.jpg"),

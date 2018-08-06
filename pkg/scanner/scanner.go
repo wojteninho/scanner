@@ -32,6 +32,18 @@ type FileItem struct {
 	Err      error
 }
 
+func (f FileItem) String() string {
+	if f.Err != nil {
+		return f.Err.Error()
+	}
+
+	if f.FileInfo != nil {
+		return f.FileInfo.PathName()
+	}
+
+	return ""
+}
+
 type FileItemChan chan FileItem
 
 type Scanner interface {
