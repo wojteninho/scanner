@@ -34,11 +34,8 @@ static-check-vet: ## run go vet static check
 ### TEST ###
 ############
 
-test: ## run unit tests
-	go test ${GO_PACKAGES} -v -race
-
-test-with-coverage: ## run unit tests and generate coverage
-	./codecov.sh
+test: ## run unit tests and generate coverage
+	go test -v -race -vet=off -coverprofile=cover.out -covermode=atomic -cover ./pkg/...
 
 test-coverage-txt-to-html: ## transform coverage report to html
-	go tool cover -html=coverage.txt -o coverage.html
+	go tool cover -html=cover.out -o cover.html

@@ -34,7 +34,7 @@ func (s *DebugScanner) Scan(ctx context.Context) (FileItemChan, error) {
 
 func NewPrintPathNameDebugScanner(scanner Scanner) Scanner {
 	return NewDebugScanner(scanner, func(item FileItem) {
-		fmt.Println(item.FileInfo.PathName())
+		fmt.Println(item.String())
 	})
 }
 

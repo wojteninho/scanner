@@ -18,7 +18,7 @@ func BenchmarkSimpleScannerBulkSize(b *testing.B) {
 				b.StopTimer()
 				dir := NewDirectoryPath(fmt.Sprintf("directory-with-%d-files", filesNumber))
 				defer MustNewWorkspace(dir, WithItems(NewWorkspaceFiles("file", filesNumber)...)).Purge()
-				scanner := MustScanner(NewSimpleScanner(WithDir(dir), WithBulkSize(bulkSize)))
+				scanner := MustScanner(NewBasicScanner(WithDir(dir), WithBulkSize(bulkSize)))
 				b.StartTimer()
 
 				for i := 0; i < b.N; i++ {
@@ -39,7 +39,7 @@ func makeSimpleScannerScanFn(directory string) ScanFn {
 		var doneChan = make(chan struct{})
 
 		go func() {
-			for item := range MustScan(MustScanner(NewSimpleScanner(WithDir(directory))).Scan(context.TODO())) {
+			for item := range MustScan(MustScanner(NewBasicScanner(WithDir(directory))).Scan(context.TODO())) {
 				if item.Err != nil {
 					panic(item.Err)
 				}
@@ -107,7 +107,7 @@ func BenchmarkCompareWithOtherMethodsByScanningFlatDirectory(b *testing.B) {
 		Name       string
 		MakeScanFn MakeScanFn
 	}{
-		{Name: "SimpleScanner.Scan", MakeScanFn: makeSimpleScannerScanFn},
+		{Name: "BasicScanner.Scan", MakeScanFn: makeSimpleScannerScanFn},
 		{Name: "filepath.Walk", MakeScanFn: makeFilepathWalkFn},
 		{Name: "ioutil.ReadDir", MakeScanFn: makeIoutilReadDirFn},
 		{Name: "os.File.Readdir", MakeScanFn: makeOsFileReaddirFn},

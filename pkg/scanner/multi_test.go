@@ -34,7 +34,7 @@ func (s *SuccessfulScanner) Scan(ctx context.Context) (FileItemChan, error) {
 }
 
 func TestMultiScanner(t *testing.T) {
-	t.Run("When no scanners are passed", GomegaTest(func(t *testing.T) {
+	t.Run("When no scanners are passed", ScannerTest(func(t *testing.T) {
 		fileChan, err := NewMultiScanner().Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
@@ -42,21 +42,21 @@ func TestMultiScanner(t *testing.T) {
 		Expect(fileChan).To(WithTransform(FileChanToSlice, BeEmpty()))
 	}))
 
-	t.Run("When single failing scanner is passed", GomegaTest(func(t *testing.T) {
+	t.Run("When single failing scanner is passed", ScannerTest(func(t *testing.T) {
 		fileChan, err := NewMultiScanner(&FailingScanner{}).Scan(context.TODO())
 
 		Expect(err).To(HaveOccurred())
 		Expect(fileChan).To(BeNil())
 	}))
 
-	t.Run("When multiple failing scanners are passed", GomegaTest(func(t *testing.T) {
+	t.Run("When multiple failing scanners are passed", ScannerTest(func(t *testing.T) {
 		fileChan, err := NewMultiScanner(&FailingScanner{}, &FailingScanner{}, &FailingScanner{}).Scan(context.TODO())
 
 		Expect(err).To(HaveOccurred())
 		Expect(fileChan).To(BeNil())
 	}))
 
-	t.Run("When both successful and failing scanners are passed", GomegaTest(func(t *testing.T) {
+	t.Run("When both successful and failing scanners are passed", ScannerTest(func(t *testing.T) {
 		fileChan, err := NewMultiScanner(
 			&SuccessfulScanner{items: []FileItem{{}, {}, {}}},
 			&FailingScanner{},
@@ -66,7 +66,7 @@ func TestMultiScanner(t *testing.T) {
 		Expect(fileChan).To(BeNil())
 	}))
 
-	t.Run("When single successful scanner is passed", GomegaTest(func(t *testing.T) {
+	t.Run("When single successful scanner is passed", ScannerTest(func(t *testing.T) {
 		fileChan, err := NewMultiScanner(&SuccessfulScanner{items: []FileItem{{}, {}, {}}}).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())
@@ -74,7 +74,7 @@ func TestMultiScanner(t *testing.T) {
 		Expect(fileChan).To(WithTransform(FileChanToSlice, HaveLen(3)))
 	}))
 
-	t.Run("When multiple successful scanners are passed", GomegaTest(func(t *testing.T) {
+	t.Run("When multiple successful scanners are passed", ScannerTest(func(t *testing.T) {
 		fileChan, err := NewMultiScanner(
 			&SuccessfulScanner{items: []FileItem{{}, {}, {}}},
 			&SuccessfulScanner{items: []FileItem{{}, {}, {}}},
@@ -86,7 +86,7 @@ func TestMultiScanner(t *testing.T) {
 		Expect(fileChan).To(WithTransform(FileChanToSlice, HaveLen(9)))
 	}))
 
-	t.Run("When real Scanners are passed", GomegaTest(func(t *testing.T) {
+	t.Run("When real Scanners are passed", ScannerTest(func(t *testing.T) {
 		firstDir := NewDirectoryPath("first-directory")
 		defer MustNewWorkspace(firstDir, WithItems(
 			NewWorkspaceDir("level-0-directory-1"),
@@ -102,8 +102,8 @@ func TestMultiScanner(t *testing.T) {
 		)).Purge()
 
 		fileChan, err := NewMultiScanner(
-			MustScanner(NewSimpleScanner(WithDir(firstDir))),
-			MustScanner(NewSimpleScanner(WithDir(secondDir))),
+			MustScanner(NewBasicScanner(WithDir(firstDir))),
+			MustScanner(NewBasicScanner(WithDir(secondDir))),
 		).Scan(context.TODO())
 
 		Expect(err).ToNot(HaveOccurred())

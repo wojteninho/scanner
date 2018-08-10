@@ -7,10 +7,7 @@ import (
 	"path"
 )
 
-var (
-	ErrNotDirectory    = errors.New("not directory")
-	ErrDirectoryNotSet = errors.New("directory is not set, use WithDir(/path/to/directory) to set it up")
-)
+var ErrNotDirectory = errors.New("not a directory")
 
 type FileInfo interface {
 	os.FileInfo
@@ -33,6 +30,18 @@ func NewFile(info os.FileInfo, pathName string) File {
 type FileItem struct {
 	FileInfo FileInfo
 	Err      error
+}
+
+func (f FileItem) String() string {
+	if f.Err != nil {
+		return f.Err.Error()
+	}
+
+	if f.FileInfo != nil {
+		return f.FileInfo.PathName()
+	}
+
+	return ""
 }
 
 type FileItemChan chan FileItem

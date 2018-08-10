@@ -20,8 +20,51 @@ import (
 	. "github.com/wojteninho/scanner/pkg/scanner"
 )
 
+func TestFileItem(t *testing.T) {
+	t.Run("When calling OutputFn", ScannerTest(func(t *testing.T) {
+		var testCases = []struct {
+			Name       string
+			FileItemFn func() FileItem
+			OutputFn   func() string
+		}{
+			{
+				"FileInfo & Err are nil",
+				func() FileItem { return FileItem{} },
+				func() string { return "" },
+			},
+			{
+				"FileInfo nil & Err not nil",
+				func() FileItem { return FileItem{FileInfo: nil, Err: errors.New("dummy error")} },
+				func() string { return "dummy error" },
+			},
+			{
+				"FileInfo not nil & Err nil",
+				func() FileItem {
+					_, filename, _, _ := runtime.Caller(0)
+					f, err := os.Stat(filename)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(f).ToNot(BeNil())
+
+					file := NewFile(f, filepath.Dir(filename))
+					return FileItem{FileInfo: file, Err: nil}
+				},
+				func() string {
+					_, filename, _, _ := runtime.Caller(0)
+					return filename
+				},
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, ScannerTest(func(t *testing.T) {
+				Expect(tc.OutputFn()).To(Equal(tc.FileItemFn().String()))
+			}))
+		}
+	}))
+}
+
 func TestFile(t *testing.T) {
-	t.Run("When calling PathName", GomegaTest(func(t *testing.T) {
+	t.Run("When calling PathName", ScannerTest(func(t *testing.T) {
 		_, filename, _, _ := runtime.Caller(0)
 		f, err := os.Stat(filename)
 		Expect(err).ToNot(HaveOccurred())
@@ -33,21 +76,21 @@ func TestFile(t *testing.T) {
 }
 
 func TestMustScanner(t *testing.T) {
-	t.Run("When error occurred", GomegaTest(func(t *testing.T) {
+	t.Run("When error occurred", ScannerTest(func(t *testing.T) {
 		Expect(func() { MustScanner(nil, errors.New("dummy error")) }).To(Panic())
 	}))
 
-	t.Run("When error not occurred", GomegaTest(func(t *testing.T) {
+	t.Run("When error not occurred", ScannerTest(func(t *testing.T) {
 		Expect(func() { MustScanner(nil, nil) }).ToNot(Panic())
 	}))
 }
 
 func TestMustScan(t *testing.T) {
-	t.Run("When error occurred", GomegaTest(func(t *testing.T) {
+	t.Run("When error occurred", ScannerTest(func(t *testing.T) {
 		Expect(func() { MustScan(nil, errors.New("dummy error")) }).To(Panic())
 	}))
 
-	t.Run("When error not occurred", GomegaTest(func(t *testing.T) {
+	t.Run("When error not occurred", ScannerTest(func(t *testing.T) {
 		Expect(func() { MustScan(nil, nil) }).ToNot(Panic())
 	}))
 }
@@ -280,8 +323,14 @@ func HaveDirectories(count int) types.GomegaMatcher {
 		FilterFn:       FilterDirectoriesFn}
 }
 
+func HaveErrors(count int) types.GomegaMatcher {
+	return &HaveFilesMatcher{
+		HaveLenMatcher: matchers.HaveLenMatcher{Count: count},
+		FilterFn:       FilterErrorsFn}
+}
+
 // gomega wrapper
-func GomegaTest(testFn func(t *testing.T)) func(t *testing.T) {
+func ScannerTest(testFn func(t *testing.T)) func(t *testing.T) {
 	return func(t *testing.T) {
 		RegisterTestingT(t)
 		testFn(t)

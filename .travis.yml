@@ -42,7 +42,7 @@ before_script:
 
 script:
   - make static-check
-  - make test-with-coverage
+  - make test
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash) -F unit -f coverage.txt
+  - bash <(curl -s https://codecov.io/bash) -F unit
