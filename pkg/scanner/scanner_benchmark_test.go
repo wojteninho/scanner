@@ -114,7 +114,7 @@ func BenchmarkCompareWithOtherMethodsByScanningFlatDirectory(b *testing.B) {
 	}
 
 	for _, strategy := range scanStrategies {
-		for _, filesNumber := range []uint{10, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000} {
+		for _, filesNumber := range []uint{100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000} {
 			b.Run(fmt.Sprintf("%s/filesNumber-%d", strategy.Name, filesNumber), func(b *testing.B) {
 				b.StopTimer()
 				dir := NewDirectoryPath(fmt.Sprintf("directory-with-%d-files", filesNumber))

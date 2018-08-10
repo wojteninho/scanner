@@ -9,7 +9,7 @@
 *.test
 
 # Output of the go coverage tool
-coverage.*
+cover.*
 
 # vendor
 vendor/
