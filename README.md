@@ -1,19 +1,40 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/wojteninho/scanner)](https://goreportcard.com/report/github.com/wojteninho/scanner)
 [![Build Status](https://travis-ci.org/wojteninho/scanner.svg?branch=master)](https://travis-ci.org/wojteninho/scanner)
 [![codecov](https://codecov.io/gh/wojteninho/scanner/branch/master/graph/badge.svg)](https://codecov.io/gh/wojteninho/scanner)
 
 # Scanner
 
-The objective of the **Scanner** package is to provide a convenient and versatile tool to iterate through files in the filesystem. It is a set of composable iterators
-to execute common tasks like scanning single directory, scanning multiple directories, recursive scanning, filtering etc.
+The objective of the **Scanner** package is to provide a convenient and versatile tool to iterate through files in the filesystem. It makes easy to execute common tasks like scanning single directory, scanning multiple directories, recursive scanning, filtering etc.
 
-Say you want to iterate through the directory. With scanner package it looks like:
+Say you want to recursively iterate through the files with `.jpg` or `.png` extension only, in the two directories. With scanner package it looks like:
 ```go
-scanner := MustScanner(NewBasicScanner(WithDir("/your/directory/to/scan")))
+s := NewBuilder().
+     Files().
+     In("/first/directory", "/second/directory").
+     Match(OrFilter(
+          ExtensionFilter(".jpg"),
+          ExtensionFilter(".png"),
+     )).
+     Recursive().
+     MustBuild()
 
-for item := range MustScan(scanner.Scan(context.TODO())) {
+for item := range MustScan(s.Scan(context.TODO())) {
     ...
 }
 ```
+
+Behind the scenes `Builder` compose and combine the different iterators to satisfy all the requirements specified in the builder.
+
+# Available scanners
+
+Out of all the available scanners, we can distinguish between 2 concrete types of scanners
+* [BasicScanner](https://github.com/wojteninho/scanner#basicscanner)
+* [RescursiveScanner](https://github.com/wojteninho/scanner#recursivescanner)
+
+and set of "wrappers" that are not independent iterators itself, but provide additional functionalities and enhance the behaviour of the concrete scanner they wrap
+* [MultiScanner](https://github.com/wojteninho/scanner#multiscanner)
+* [FilterScanner](https://github.com/wojteninho/scanner#filterscanner)
+* [DebugScanner](https://github.com/wojteninho/scanner#debugscanner)
 
 # Design
 
@@ -48,20 +69,7 @@ type FileInfo interface {
 	PathName() string
 }
 ```
-Purpose of the extension is additional method `PathName()` which returns the full path of the filename.
-Native `os.FileInfo` doesn't hold information about the directory and in some cases (when you recursively iterate through the directories for instance)
-it is a crucial information. Custom interface fills up the missing gap.
-
-# Available scanners
-
-Out of all the available scanners, we can distinguish between 2 concrete types of scanners
-* [BasicScanner](https://github.com/wojteninho/scanner#recursivecanner)
-* [RescursiveScanner](https://github.com/wojteninho/scanner#recursivecanner)
-
-and set of "wrappers" that are not independent iterators itself, but provide additional functionalities and enhance the behaviour of the concrete scanner they wrap
-* [MultiScanner](https://github.com/wojteninho/scanner#multiscanner)
-* [FilterScanner](https://github.com/wojteninho/scanner#filterscanner)
-* [DebugScanner](https://github.com/wojteninho/scanner#debugscanner)
+Purpose of the extension is additional method `PathName()` which returns the full path of the filename. Native `os.FileInfo` doesn't hold information about the directory and in some cases (when you recursively iterate through the directories for instance) it is a crucial information. Custom interface fills up the missing gap.
 
 ## BasicScanner
 
@@ -76,15 +84,11 @@ for item := range MustScan(scanner.Scan(context.TODO())) {
 
 ## RecursiveScanner
 
-RecursiveScanner is the more versatile and robust scanner. As the name says, its main feature is an ability to scan a directory recursively.
-It makes use of the concurrent nature of the Golang itself and spawns up to the certain and fixed limit of workers concurrently.
-By default, it set `runtime.NumCPU()` as the limit, but you can modify it to your needs accordingly by passing additional option to the constructor function:
+RecursiveScanner is the more versatile and robust scanner. As the name says, its main feature is an ability to scan a directory recursively. It makes use of the concurrent nature of the Golang itself and spawns up to the certain and fixed limit of workers concurrently. By default, it set `runtime.NumCPU()` as the limit, but you can modify it to your needs accordingly by passing additional option to the constructor function:
 ```go
 NewRecursiveScanner(WithWorkers(2))
 ```
-Worth to say, implementation behind the scenes is a dynamic worker pool. Say we have a default limit of `runtime.NumCPU()` workers which are for instance 4 on the target machine.
-It means if we have to scan 2 directories we will spawn only 2 workers if we have to scan 4 directories we will spawn only 4 workers, but anything above the limit
-will not spawn new workers, but append the directories to the internal queue and spawn new processing when, and only when, the pool of the workers allows to spawn new worker.
+Worth to say, implementation behind the scenes is a dynamic worker pool. Say we have a default limit of `runtime.NumCPU()` workers which are for instance 4 on the target machine. It means if we have to scan 2 directories we will spawn only 2 workers if we have to scan 4 directories we will spawn only 4 workers, but anything above the limit will not spawn new workers, but append the directories to the internal queue and spawn new processing when, and only when, the pool of the workers allows to spawn new worker.
 
 Another attribute of RecursiveScanner is an ability to scan multiple directories. You can set them by passing option to the constructor function:
 ```go
@@ -101,8 +105,7 @@ for item := range MustScan(recursiveScanner.Scan(context.TODO())) {
 
 ## MultiScanner
 
-MultiScanner is one amongst the "wrappers" family. It is not self-sufficient scanner itself, but needs to wrap concrete scanners. Objective of the MultiScanner is to merge
-multiple scanners into one. More than enough is to see the example.
+MultiScanner is one amongst the "wrappers" family. It is not self-sufficient scanner itself, but needs to wrap concrete scanners. Objective of the MultiScanner is to merge multiple scanners into one. More than enough is to see the example.
 ```go
 firstScanner := MustScanner(NewBasicScanner(WithDirectory("/your/first/directory/to/scan")))
 secondScanner := MustScanner(NewBasicScanner(WithDirectory("/your/second/directory/to/scan")))
@@ -118,11 +121,13 @@ for item := range MustScan(multiScanner.Scan(context.TODO())) {
 
 FilterScanner enhance the wrapped scanner with filtering feature. Constructor function is as follow:
 ```go
-func NewFilterScanner(scanner Scanner, filterFn FilterFn) Scanner
+func NewFilterScanner(scanner Scanner, filter Filter) Scanner
 ```
-while definition of `FilterFn` is
+while definition of `Filter` is
 ```go
-type FilterFn func(file FileItem) bool
+type Filter interface {
+	Match(file FileItem) bool
+}
 ```
 In the `Scanner` package already exist two implementations:
 * FilterRegularFilesScanner
@@ -137,8 +142,7 @@ for item := range MustScan(regularFilesScanner.Scan(context.TODO())) {
     ...
 }
 ```
-However, by providing a custom function that fulfills the `FilterFn` definition you can build your own Scanners. Say we want to filter out files with names longer than 7 characters
-(I know it is a contrived use case, but let's take it into consideration only for the sake of example)
+However, by providing a custom function that fulfills the `FilterFn` definition you can build your own Scanners. Say we want to filter out files with names longer than 7 characters (I know it is a contrived use case, but let's take it into consideration only for the sake of example)
 ```go
 scanner := MustScanner(NewBasicScanner(WithDir("/your/directory/to/scan")))
 filterScanner := NewFilterScanner(scanner, func(file FileItem) bool {
@@ -173,3 +177,7 @@ debugScanner := NewDebugScanner(scanner, func (item FileItem) {
     ...
 })
 ```
+
+# License
+
+The library is released under the MIT license. See LICENSE file.

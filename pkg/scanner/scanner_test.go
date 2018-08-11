@@ -264,11 +264,11 @@ func debug(directory string) {
 
 type FileSlice []FileItem
 
-func (fs FileSlice) Filter(filterFn FilterFn) FileSlice {
+func (fs FileSlice) Filter(filter Filter) FileSlice {
 	var regularFiles FileSlice
 
 	for _, f := range fs {
-		if !filterFn(f) {
+		if !filter.Match(f) {
 			continue
 		}
 
@@ -279,11 +279,11 @@ func (fs FileSlice) Filter(filterFn FilterFn) FileSlice {
 }
 
 func (fs FileSlice) FilterRegularFiles() FileSlice {
-	return fs.Filter(FilterRegularFilesFn)
+	return fs.Filter(RegularFilesFilter)
 }
 
 func (fs FileSlice) FilterDirectories() FileSlice {
-	return fs.Filter(FilterDirectoriesFn)
+	return fs.Filter(DirectoriesFilter)
 }
 
 func FileChanToSlice(fileChan FileItemChan) FileSlice {
@@ -299,7 +299,7 @@ func FileChanToSlice(fileChan FileItemChan) FileSlice {
 // custom matchers
 type HaveFilesMatcher struct {
 	matchers.HaveLenMatcher
-	FilterFn FilterFn
+	filter Filter
 }
 
 func (m *HaveFilesMatcher) Match(actual interface{}) (success bool, err error) {
@@ -308,25 +308,25 @@ func (m *HaveFilesMatcher) Match(actual interface{}) (success bool, err error) {
 		return false, fmt.Errorf("Expected\n%s\n to be a FileSlice, while %s given", format.Object(actual, 1), reflect.ValueOf(actual).Kind().String())
 	}
 
-	return HaveLen(m.Count).Match(files.Filter(m.FilterFn))
+	return HaveLen(m.Count).Match(files.Filter(m.filter))
 }
 
 func HaveRegularFiles(count int) types.GomegaMatcher {
 	return &HaveFilesMatcher{
 		HaveLenMatcher: matchers.HaveLenMatcher{Count: count},
-		FilterFn:       FilterRegularFilesFn}
+		filter:         RegularFilesFilter}
 }
 
 func HaveDirectories(count int) types.GomegaMatcher {
 	return &HaveFilesMatcher{
 		HaveLenMatcher: matchers.HaveLenMatcher{Count: count},
-		FilterFn:       FilterDirectoriesFn}
+		filter:         DirectoriesFilter}
 }
 
 func HaveErrors(count int) types.GomegaMatcher {
 	return &HaveFilesMatcher{
 		HaveLenMatcher: matchers.HaveLenMatcher{Count: count},
-		FilterFn:       FilterErrorsFn}
+		filter:         ErrFilter}
 }
 
 // gomega wrapper

@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/go-test/deep"
+  packages = ["."]
+  revision = "6592d9cc0a499ad2d5f574fde80a2b5c5cc3b4f5"
+  version = "v1.0.1"
+
+[[projects]]
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -63,6 +69,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a3039176cfccea3748b155890ad018f6a2014b437d252479dc3fa4b55097e1a3"
+  inputs-digest = "5efe425cd534c23f71298637511ff03ea8565ad30488258c734af91d5be192a3"
   solver-name = "gps-cdcl"
   solver-version = 1

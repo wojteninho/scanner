@@ -4,19 +4,144 @@ import (
 	"context"
 	"testing"
 
+	"regexp"
+
+	"os"
+	"time"
+
 	. "github.com/onsi/gomega"
 	. "github.com/wojteninho/scanner/pkg/scanner"
 )
 
-func TestFilterRegularFilesFn(t *testing.T) {
-	t.Run("When is FileItem.FileInfo nil", ScannerTest(func(t *testing.T) {
-		Expect(FilterRegularFilesFn(FileItem{})).To(BeFalse())
+const (
+	nameNegativeFilter = "NegativeFilter"
+	namePositiveFilter = "PositiveFilter"
+)
+
+var (
+	NegativeFilter = MakeNamedFilter(FilterFn(func(_ FileItem) bool { return false }), nameNegativeFilter)
+	PositiveFilter = MakeNamedFilter(FilterFn(func(_ FileItem) bool { return true }), namePositiveFilter)
+)
+
+type fakeFileInfo struct {
+	name string
+}
+
+func (f *fakeFileInfo) Name() string {
+	return f.name
+}
+
+func (f *fakeFileInfo) Size() int64 {
+	return 0
+}
+
+func (f *fakeFileInfo) Mode() os.FileMode {
+	return os.ModePerm
+}
+
+func (f *fakeFileInfo) ModTime() time.Time {
+	return time.Now()
+}
+
+func (f *fakeFileInfo) IsDir() bool {
+	return false
+}
+
+func (f *fakeFileInfo) Sys() interface{} {
+	return nil
+}
+
+func (f *fakeFileInfo) PathName() string {
+	return ""
+}
+
+func TestNamedFilter(t *testing.T) {
+	t.Run("Test name", ScannerTest(func(t *testing.T) {
+		f := MakeNamedFilter(NegativeFilter, "dummy-name")
+		Expect(f).ToNot(BeNil())
+		Expect(f).To(BeAssignableToTypeOf(&NamedFilter{}))
+		Expect(f.Name()).To(Equal("dummy-name"))
 	}))
 }
 
-func TestFilterDirectoriesFn(t *testing.T) {
+func TestExtensionFilter(t *testing.T) {
+	filter := ExtensionFilter(".jpg")
+
+	t.Run("When FileItem.FileInfo is nil", ScannerTest(func(t *testing.T) {
+		Expect(filter.Match(FileItem{})).To(BeFalse())
+	}))
+
+	t.Run("When match pattern", ScannerTest(func(t *testing.T) {
+		Expect(filter.Match(FileItem{FileInfo: &fakeFileInfo{"lorem.jpg"}, Err: nil})).To(BeTrue())
+	}))
+
+	t.Run("When does not match pattern", ScannerTest(func(t *testing.T) {
+		Expect(filter.Match(FileItem{FileInfo: &fakeFileInfo{"ipsum.png"}, Err: nil})).To(BeFalse())
+	}))
+}
+
+func TestRegExpFilter(t *testing.T) {
+	r := regexp.MustCompile("^lorem")
+	filter := RegExpFilter(r)
+
+	t.Run("When FileItem.FileInfo is nil", ScannerTest(func(t *testing.T) {
+		Expect(filter.Match(FileItem{})).To(BeFalse())
+	}))
+
+	t.Run("When match pattern", ScannerTest(func(t *testing.T) {
+		Expect(filter.Match(FileItem{FileInfo: &fakeFileInfo{"lorem.jpg"}, Err: nil})).To(BeTrue())
+	}))
+
+	t.Run("When does not match pattern", ScannerTest(func(t *testing.T) {
+		Expect(filter.Match(FileItem{FileInfo: &fakeFileInfo{"ipsum.jpg"}, Err: nil})).To(BeFalse())
+	}))
+}
+
+func TestAndFilter(t *testing.T) {
+	t.Run("When no filter functions are passed", ScannerTest(func(t *testing.T) {
+		Expect(AndFilter().Match(FileItem{})).To(BeTrue())
+	}))
+
+	t.Run("When all filters are negative", ScannerTest(func(t *testing.T) {
+		Expect(AndFilter(NegativeFilter, NegativeFilter, NegativeFilter).Match(FileItem{})).To(BeFalse())
+	}))
+
+	t.Run("When at least one filter is negative", ScannerTest(func(t *testing.T) {
+		Expect(AndFilter(PositiveFilter, PositiveFilter, NegativeFilter).Match(FileItem{})).To(BeFalse())
+	}))
+
+	t.Run("When all filters are positive", ScannerTest(func(t *testing.T) {
+		Expect(AndFilter(PositiveFilter, PositiveFilter, PositiveFilter).Match(FileItem{})).To(BeTrue())
+	}))
+}
+
+func TestOrFilter(t *testing.T) {
+	t.Run("When no filter functions are passed", ScannerTest(func(t *testing.T) {
+		Expect(OrFilter().Match(FileItem{})).To(BeTrue())
+	}))
+
+	t.Run("When all filters are negative", ScannerTest(func(t *testing.T) {
+		Expect(OrFilter(NegativeFilter, NegativeFilter, NegativeFilter).Match(FileItem{})).To(BeFalse())
+	}))
+
+	t.Run("When at least one filter is positive", ScannerTest(func(t *testing.T) {
+		Expect(OrFilter(PositiveFilter, NegativeFilter, NegativeFilter).Match(FileItem{})).To(BeTrue())
+	}))
+
+	t.Run("When all filters are positive", ScannerTest(func(t *testing.T) {
+		Expect(OrFilter(PositiveFilter, PositiveFilter, PositiveFilter).Match(FileItem{})).To(BeTrue())
+	}))
+}
+
+func TestRegularFilesFilter(t *testing.T) {
+	t.Run("When FileItem.FileInfo is nil", ScannerTest(func(t *testing.T) {
+		Expect(RegularFilesFilter.Match(FileItem{})).To(BeFalse())
+	}))
+}
+
+func TestDirectoriesFilter(t *testing.T) {
 	t.Run("When is FileItem.FileInfo nil", ScannerTest(func(t *testing.T) {
-		Expect(FilterDirectoriesFn(FileItem{})).To(BeFalse())
+		Expect(DirectoriesFilter.Match(FileItem{})).To(BeFalse())
 	}))
 }
 
