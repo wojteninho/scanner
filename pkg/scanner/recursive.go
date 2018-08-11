@@ -10,7 +10,10 @@ type RecursiveScannerOptionFn func(s *RecursiveScanner) error
 
 func WithDirectories(directories ...string) RecursiveScannerOptionFn {
 	return func(s *RecursiveScanner) error {
-		uniqueDirectories := make(map[string]bool, len(directories))
+		var (
+			uniqueDirectories    []string
+			uniqueDirectoriesMap = make(map[string]bool)
+		)
 
 		for _, d := range directories {
 			info, err := os.Stat(d)
@@ -22,16 +25,15 @@ func WithDirectories(directories ...string) RecursiveScannerOptionFn {
 				return ErrNotDirectory
 			}
 
-			if _, exists := uniqueDirectories[d]; exists {
+			if _, exists := uniqueDirectoriesMap[d]; exists {
 				continue
 			}
 
-			uniqueDirectories[d] = true
+			uniqueDirectoriesMap[d] = true
+			uniqueDirectories = append(uniqueDirectories, d)
 		}
 
-		for dir := range uniqueDirectories {
-			s.directories = append(s.directories, dir)
-		}
+		s.directories = uniqueDirectories
 
 		return nil
 	}
