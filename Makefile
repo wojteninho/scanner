@@ -37,5 +37,8 @@ static-check-vet: ## run go vet static check
 test: ## run unit tests and generate coverage
 	go test -v -race -vet=off -coverprofile=cover.out -covermode=atomic -cover ./pkg/...
 
+test-modules: ## run unit tests and generate coverage
+	go test -v -race -vet=off -coverprofile=cover.out -covermode=atomic -cover -mod=vendor ./pkg/...
+
 test-coverage-txt-to-html: ## transform coverage report to html
 	go tool cover -html=cover.out -o cover.html
