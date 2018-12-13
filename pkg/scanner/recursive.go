@@ -51,7 +51,7 @@ type RecursiveScanner struct {
 	workers     uint
 }
 
-func NewRecursiveScanner(options ...RecursiveScannerOptionFn) (Scanner, error) {
+func NewRecursiveScanner(options ...RecursiveScannerOptionFn) (*RecursiveScanner, error) {
 	s := RecursiveScanner{
 		workers: uint(runtime.NumCPU()),
 	}
