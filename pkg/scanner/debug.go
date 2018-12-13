@@ -32,12 +32,12 @@ func (s *DebugScanner) Scan(ctx context.Context) (FileItemChan, error) {
 	return fileChan, nil
 }
 
-func NewPrintPathNameDebugScanner(scanner Scanner) Scanner {
+func NewPrintPathNameDebugScanner(scanner Scanner) *DebugScanner {
 	return NewDebugScanner(scanner, func(item FileItem) {
 		fmt.Println(item.String())
 	})
 }
 
-func NewDebugScanner(scanner Scanner, debugFn DebugFn) Scanner {
+func NewDebugScanner(scanner Scanner, debugFn DebugFn) *DebugScanner {
 	return &DebugScanner{scanner, debugFn}
 }

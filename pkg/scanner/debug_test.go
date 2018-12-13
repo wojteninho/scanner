@@ -48,7 +48,7 @@ func TestNewPrintPathNameDebugScanner(t *testing.T) {
 		}
 		debugScanner := scanner.NewPrintPathNameDebugScanner(internalScanner)
 		Expect(func() {
-			debugScanner.Scan(context.TODO())
+			_, _ = debugScanner.Scan(context.TODO())
 		}).NotTo(Panic())
 	}))
 }

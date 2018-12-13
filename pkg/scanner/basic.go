@@ -36,7 +36,7 @@ type BasicScanner struct {
 	bulkSize  int
 }
 
-func NewBasicScanner(options ...BasicScannerOptionFn) (Scanner, error) {
+func NewBasicScanner(options ...BasicScannerOptionFn) (*BasicScanner, error) {
 	s := BasicScanner{
 		bulkSize: 20,
 	}

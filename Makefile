@@ -25,10 +25,13 @@ fmt: ## run gofmt command
 ### STATIC CHECKS ###
 #####################
 
-static-check: static-check-vet ## run all static checks
+static-check: static-check-vet static-check-lint ## run all static checks
 
 static-check-vet: ## run go vet static check
 	go vet ${GO_PACKAGES}
+
+static-check-lint: ## run golangci-lint
+	golangci-lint run --disable-all --deadline=30m --skip-dirs vendor/ -v --print-resources-usage -E errcheck,varcheck,typecheck,deadcode,goconst
 
 ############
 ### TEST ###

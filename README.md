@@ -121,7 +121,7 @@ for item := range MustScan(multiScanner.Scan(context.TODO())) {
 
 FilterScanner enhance the wrapped scanner with filtering feature. Constructor function is as follow:
 ```go
-func NewFilterScanner(scanner Scanner, filter Filter) Scanner
+func NewFilterScanner(scanner Scanner, filter Filter) *FilterScanner
 ```
 while definition of `Filter` is
 ```go

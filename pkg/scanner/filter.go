@@ -148,14 +148,14 @@ func (s *FilterScanner) Scan(ctx context.Context) (FileItemChan, error) {
 	return fileChan, nil
 }
 
-func NewFilterRegularFilesScanner(scanner Scanner) Scanner {
+func NewFilterRegularFilesScanner(scanner Scanner) *FilterScanner {
 	return NewFilterScanner(scanner, RegularFilesFilter)
 }
 
-func NewFilterDirectoriesScanner(scanner Scanner) Scanner {
+func NewFilterDirectoriesScanner(scanner Scanner) *FilterScanner {
 	return NewFilterScanner(scanner, DirectoriesFilter)
 }
 
-func NewFilterScanner(scanner Scanner, filter Filter) Scanner {
+func NewFilterScanner(scanner Scanner, filter Filter) *FilterScanner {
 	return &FilterScanner{scanner, filter}
 }
