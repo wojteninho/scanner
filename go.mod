@@ -1,5 +1,7 @@
 module github.com/wojteninho/scanner
 
+go 1.14
+
 require (
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/go-test/deep v1.0.1
